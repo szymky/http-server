@@ -1,5 +1,7 @@
 
 #include <netinet/in.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,9 +12,108 @@
 #include <stdbool.h>
 
 
+// Dynamic array
+#define DYN_ARR_DEFAULT_SIZE 10 
 
+typedef struct DynArr {
+
+    void* data;    
+    size_t data_size;
+    size_t size;
+    size_t capacity;
+
+    void (*push)(struct DynArr*,void*); 
+    void (*free)(struct DynArr*);
+    
+} DynArr;
+
+static void DynArr_push(DynArr* arr, void* data) {
+
+    if ( arr->capacity - arr->data_size < 0 ) {
+       
+        size_t size = arr->size + (DYN_ARR_DEFAULT_SIZE * arr->data_size);
+        arr->data = realloc(arr->data, size);
+        arr->capacity += size;
+    }
+
+
+}
+
+static void DynArr_free(DynArr* arr) {
+    free(arr);
+}
+
+void DynArr_init(DynArr* dynArr, size_t data_size) {
+    dynArr->push = DynArr_push;
+    dynArr->free = DynArr_free;
+    dynArr->data_size = data_size;
+
+    dynArr->data = malloc(DYN_ARR_DEFAULT_SIZE*data_size);
+    dynArr->size = DYN_ARR_DEFAULT_SIZE;
+    dynArr->capacity = DYN_ARR_DEFAULT_SIZE;    
+}
+// end dynamic array
+
+
+// http server 
 #define GET(path) "GET " #path
 
+#define HTTP_VERSION "HTTP/1.1"
+
+typedef struct {
+
+    const char* http_version;
+    uint32_t response_code;
+    const char* response_text;
+
+    const char* content_type;
+    size_t content_length;
+
+    const char* content;
+
+} http_server_response;
+
+void build_response(
+        http_server_response* response,
+        uint32_t response_code,
+        const char* response_text,
+
+        const char* content_type,
+        size_t content_length,
+        const char* content
+        ) {
+
+    response->http_version = HTTP_VERSION;
+    response->response_code = response_code;
+    response->response_text = response_text;
+    response->content_type = content_type;
+    response->content_length = content_length;
+    response->content = content;
+
+}
+
+char* make_response(const http_server_response* response) {
+    size_t needed = snprintf(NULL, 0, "%s %d %s\r\nContent-Type: %s\r\nContent-Length: %lu\r\n\r\n%s", 
+            response->http_version, 
+            response->response_code, 
+            response->response_text, 
+            response->content_type, 
+            response->content_length,
+            response->content);
+
+    char* buffer = malloc(needed + 1);
+    if (!buffer) return NULL;
+
+    snprintf(buffer, needed + 1, "%s %d %s\r\nContent-Type: %s\r\nContent-Length: %lu\r\n\r\n%s", 
+            response->http_version, 
+            response->response_code, 
+            response->response_text, 
+            response->content_type, 
+            response->content_length,
+            response->content);
+
+    return buffer;
+}
 
 #define PORT 8080
 #define BUFFER_SIZE 1024
@@ -22,7 +123,22 @@ void handle_hello(int client_socket) {
     send(client_socket, response, strlen(response), 0);
 }
 
+void handle_root(int client_socket) {
+    const char* page = "<!DOCTYPE html><html><head><title>index page</title></head><body><h1>Index page</h1><p>Server serving</p></body></html>";
 
+    http_server_response http_response; 
+    build_response(
+            &http_response, 
+            200, 
+            "OK", 
+            "text/html", 
+            strlen(page), 
+            page);
+    const char* response = make_response(&http_response);
+    send(client_socket, response, strlen(response), 0);
+
+    free((void*)response);
+}
 
 
 void handle_request(int client_socket) {
@@ -31,12 +147,9 @@ void handle_request(int client_socket) {
     recv(client_socket, buffer, sizeof(buffer), 0);
 
     if (strncmp(buffer, "GET /hello", 10) == 0) {
-
         handle_hello(client_socket);
-
-
-    } else if (strncmp(buffer, "GET /headers", 12) == 0) {
-        // get headers
+    } else if (strncmp(buffer, "GET /", 5) == 0) {
+        handle_root(client_socket);
     } else {
         char *response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\n404 Not Found";
         send(client_socket, response, strlen(response), 0);
@@ -44,9 +157,17 @@ void handle_request(int client_socket) {
 
     close(client_socket);
 }
+// end http server 
 
 
+// TODO: abstract it away
 int main(void) {
+
+
+    DynArr dynamic_array;
+    DynArr_init(&dynamic_array, sizeof(int));
+
+    dynamic_array.free(&dynamic_array)
 
 
     int server_socket, client_socket;
