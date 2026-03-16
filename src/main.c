@@ -18,9 +18,9 @@
 typedef struct DynArr {
 
     void* data;    
+    size_t item_count;
     size_t data_size;
     size_t size;
-    size_t capacity;
 
     void (*push)(struct DynArr*,void*); 
     void (*free)(struct DynArr*);
@@ -29,13 +29,14 @@ typedef struct DynArr {
 
 static void DynArr_push(DynArr* arr, void* data) {
 
-    if ( arr->capacity - arr->data_size < 0 ) {
+    if ( (arr->size - arr->item_count) < 0 ) {
        
-        size_t size = arr->size + (DYN_ARR_DEFAULT_SIZE * arr->data_size);
-        arr->data = realloc(arr->data, size);
-        arr->capacity += size;
+        arr->size += (DYN_ARR_DEFAULT_SIZE * arr->data_size);
+        arr->data = realloc(arr->data, arr->size);
     }
 
+    memcpy(arr->data+(arr->item_count*arr->data_size), data, arr->data_size);
+    arr->item_count++;
 
 }
 
@@ -43,14 +44,15 @@ static void DynArr_free(DynArr* arr) {
     free(arr);
 }
 
+
 void DynArr_init(DynArr* dynArr, size_t data_size) {
     dynArr->push = DynArr_push;
     dynArr->free = DynArr_free;
     dynArr->data_size = data_size;
+    dynArr->item_count = 0;
 
     dynArr->data = malloc(DYN_ARR_DEFAULT_SIZE*data_size);
     dynArr->size = DYN_ARR_DEFAULT_SIZE;
-    dynArr->capacity = DYN_ARR_DEFAULT_SIZE;    
 }
 // end dynamic array
 
@@ -59,6 +61,11 @@ void DynArr_init(DynArr* dynArr, size_t data_size) {
 #define GET(path) "GET " #path
 
 #define HTTP_VERSION "HTTP/1.1"
+
+
+typedef struct {
+    
+} http_server;
 
 typedef struct {
 
@@ -162,12 +169,6 @@ void handle_request(int client_socket) {
 
 // TODO: abstract it away
 int main(void) {
-
-
-    DynArr dynamic_array;
-    DynArr_init(&dynamic_array, sizeof(int));
-
-    dynamic_array.free(&dynamic_array)
 
 
     int server_socket, client_socket;
