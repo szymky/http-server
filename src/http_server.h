@@ -11,7 +11,15 @@
 #include <arpa/inet.h>
 #include <stdbool.h>
 
-#define GET(path) "GET " #path
+#define GET(path)       "GET "  #path
+#define PUT(path)       "PUT " #path
+#define HEAD(path)      "HEAD " #path
+#define POST(path)      "POST " #path
+#define DELETE(path)    "DELETE " #path
+#define CONNECT(path)   "CONNECT " #path
+#define TRACE(path)     "TRACE " #path
+#define PATCH(path)     "PATCH " #path
+
 #define HTTP_VERSION "HTTP/1.1"
 #define BUFFER_SIZE 1024
 

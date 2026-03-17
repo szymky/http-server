@@ -62,14 +62,11 @@ char* make_response(const http_server_response* response) {
     return buffer;
 }
 
-void handle_hello(int client_socket) {
-    char *response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nhello\n";
-    send(client_socket, response, strlen(response), 0);
-}
-
 void handle_request(http_server* server) {
     char buffer[BUFFER_SIZE];
     recv(server->client_socket, buffer, sizeof(buffer), 0);
+
+    // TODO: parse the response to a struct 
 
     char *space1 = strchr(buffer, ' ');
     if (!space1) {
@@ -83,8 +80,6 @@ void handle_request(http_server* server) {
     }
 
     printf("%s\n", buffer);
-
-
 
     router_handler func = hashmap_get(server->routes, buffer);
     if (func == NULL) {

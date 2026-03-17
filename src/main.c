@@ -8,8 +8,6 @@
 
 #include "http_server.h"
 
-#include "utils/HashMap.h"
-
 void handle_root(int client_socket) {
     const char* page = 
         "<!DOCTYPE html><html><head><title>index page</title></head><body><h1>Index page</h1><p>Server serving</p></body></html>";
@@ -24,6 +22,8 @@ void handle_root(int client_socket) {
             page);
     const char* response = make_response(&http_response);
     send(client_socket, response, strlen(response), 0);
+    
+
     free((void*)response);
 }
 
