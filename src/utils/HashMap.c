@@ -41,7 +41,7 @@ void hashmap_resize(HashMap *map) {
 
     free (old_buckets);
 }
-void hashmap_put(HashMap *map, const char *key, const char *value) {
+void hashmap_put(HashMap *map, const char *key, router_handler value) {
     if ((float)(map->count + 1) / map->size > LOAD_FACTOR_THRESHOLD) {
         hashmap_resize(map);
     }
@@ -51,8 +51,7 @@ void hashmap_put(HashMap *map, const char *key, const char *value) {
 
     while(current) {
         if (strcmp(current->key, key) == 0) {
-            free(current->value);
-            current->value = strdup(value);
+            current->value = value;
             return;
         }
         current = current->next;
@@ -60,12 +59,12 @@ void hashmap_put(HashMap *map, const char *key, const char *value) {
 
     Node *new_node = malloc(sizeof(Node));
     new_node->key = strdup(key);
-    new_node->value = strdup(value);
+    new_node->value = value;
     new_node->next = map->buckets[index];
     map->buckets[index] = new_node;
     map->count++;
 }
-char *hashmap_get(HashMap *map, const char *key) {
+router_handler hashmap_get(HashMap *map, const char *key) {
     unsigned int index = hashmap_hash(key, map->size);
     Node *current = map->buckets[index];
 
@@ -91,7 +90,6 @@ void hashmap_delete(HashMap *map, const char *key) {
             }
 
             free(current->key);
-            free(current->value);
             free(current);
             map->count--;
             return;
@@ -107,7 +105,6 @@ void hashmap_free(HashMap *map) {
             Node *tmp = current;
             current = current->next;
             free(tmp->key);
-            free(tmp->value);
             free(tmp);
         }
     }

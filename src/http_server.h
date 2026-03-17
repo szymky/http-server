@@ -1,6 +1,7 @@
 #ifndef HTTP_SERVER_H
 #define HTTP_SERVER_H 
 
+#include "utils/HashMap.h"
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -18,6 +19,8 @@ typedef struct {
     int server_socket, client_socket;
     struct sockaddr_in server_addr, client_addr;
     socklen_t addr_len;
+
+    HashMap *routes;
 } http_server;
 
 typedef struct {
@@ -43,7 +46,9 @@ void build_response(
 char* make_response(const http_server_response* response);
 void handle_hello(int client_socket);
 void handle_root(int client_socket);
-void handle_request(int client_socket);
+void handle_request(http_server* server);
 bool accept_request (http_server* server);
+
+void http_server_register(http_server* server, const char* path, router_handler handler);
 
 #endif
