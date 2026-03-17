@@ -29,7 +29,9 @@ void handle_root(int client_socket) {
 
 
 
-int main(void) {
+int main(int argc, char **argv) {
+   
+
     http_server server;
     if ( !setup_http_server(&server, 8080) ){
         perror("[-] Failed to setup http server");

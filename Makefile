@@ -17,7 +17,7 @@ SRCS    := $(shell find $(SRC_DIR) -name '*.c')
 
 OBJS 	:= $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
-.PHONY: all run clean
+.PHONY: all run clean debug
 
 all: $(BIN_DIR)/$(TARGET)
 	@echo BIN DIR: $(BIN_DIR)
@@ -28,7 +28,7 @@ $(BIN_DIR)/$(TARGET): $(OBJS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -g -c $< -o $@
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
