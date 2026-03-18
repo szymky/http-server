@@ -1,6 +1,3 @@
-
-
-
 CC 		:= gcc
 CFLAGS 	:= -Wall -Wextra
 
@@ -12,15 +9,12 @@ BIN_DIR := ./bin
 
 TARGET 	:= http-server
 
-
 SRCS    := $(shell find $(SRC_DIR) -name '*.c')
-
 OBJS 	:= $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
 .PHONY: all run clean debug
 
 all: $(BIN_DIR)/$(TARGET)
-	@echo BIN DIR: $(BIN_DIR)
 
 $(BIN_DIR)/$(TARGET): $(OBJS) 
 	@mkdir -p $(dir $@)
